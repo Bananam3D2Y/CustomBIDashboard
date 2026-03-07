@@ -41,10 +41,22 @@ async function loadDatabase(query) {
     });
 }
 
+// Create a listener for our central dashboard form
 document.getElementById("dashboard_form").addEventListener("submit", function(event) {
-    event.preventDefault(); // prevents page reload
-    // Fetch user's string value
-    const query = document.getElementById("dashboard_query").value;
+    event.preventDefault(); // This line is required to prevent page reload
+    // Fetch user's form values
+    const select = document.getElementById("dashboard_select").value;
+    const from = document.getElementById("dashboard_from").value;
+    const where = document.getElementById("dashboard_where").value;
+    const limit = document.getElementById("dashboard_limit").value;
+    // Build the query
+    let query;
+    if (where === "none") {
+        query = `SELECT ${select} FROM ${from} LIMIT ${limit}`;
+    } else {
+        query = "SELECT * FROM Sample_Table LIMIT 5";
+    }
+    // Execute query
     loadDatabase(query);
 });
 

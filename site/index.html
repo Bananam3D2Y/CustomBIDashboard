@@ -17,14 +17,30 @@
       </div>
     </header>
 
-    <!-- Central "dashboard" widgit, primary functionality of the site -->
+    <!-- DASHBOARD, The central "dashboard" widgit, primary functionality of the site -->
+    <div>Can be used to make querys of the form "SELECT X FROM T WHERE Y LIMIT Z"</div>
     <form id="dashboard_form">
       <label>Query:</label>
-      <input type="text" id="dashboard_query" value="SELECT * FROM Sample_Table LIMIT 10">
+      <select id="dashboard_select">
+        <option value="*">All Columns</option>
+        <option value="ItemID">ItemID</option>
+      </select>
+      <select id="dashboard_from">
+        <option value="Sample_Table">Sample Table</option>
+      </select>
+      <select id="dashboard_where">
+        <option value="none">No Comparisons Yet</option>
+      </select>
+      <select id="dashboard_limit">
+        <option value="10">10</option>
+        <option value="100">100</option>
+        <option value="1000">1000</option>
+      </select>
       <input type="submit" value="run">
     </form>
-    <table id="dashboard"><!-- Is populated by "loadDatabase()" --></table>
-    
+    <table id="dashboard"></table>
+    <!-- END DASHBOARD, table ^ is populated by "loadDatabase()" -->
+
   </div>
   <!-- Obligatory API call, better to do once per pageload than once for each function call -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
