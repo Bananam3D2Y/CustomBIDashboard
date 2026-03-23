@@ -13,40 +13,91 @@
     <header>
       <div>
         <h1>Business Intelligence Dashboard</h1>
-        <p>Placeholder header text</p>
+        <p>Placeholder header</p>
       </div>
     </header>
-
     <!-- DASHBOARD, The central "dashboard" widgit, primary functionality of the site -->
-    <div>Can be used to make querys of the form "SELECT X FROM T WHERE Y LIMIT Z"</div>
-    <form id="dashboard_form">
-      <label>Query:</label>
-      <select id="dashboard_select">
-        <option value="*">All Columns</option>
-        <option value="ItemID">ItemID</option>
-      </select>
-      <select id="dashboard_from">
-        <option value="Sample_Table">Sample Table</option>
-      </select>
-      <select id="dashboard_where">
-        <option value="none">No Comparisons Yet</option>
-      </select>
-      <select id="dashboard_limit">
-        <option value="10">10</option>
-        <option value="100">100</option>
-        <option value="1000">1000</option>
-      </select>
-      <input type="submit" value="run">
-    </form>
-    <table id="dashboard"></table>
-    <!-- END DASHBOARD, table ^ is populated by "loadDatabase()" -->
+    <div id="dashboard_container">
+      <h1>Interactive Dashboard</h1>
+      <p>Can be used to make querys of the form "SELECT X FROM T WHERE Y LIMIT Z"</p>
+      <form id="dashboard_form">
+        <label>Query:</label>
+        <select id="dashboard_select">
+          <option value="*">All Columns</option>
+          <option value="ItemID">ItemID</option>
+        </select>
+        <select id="dashboard_from">
+          <option value="Sample_Table">Sample Table</option>
+        </select>
+        <select id="dashboard_where">
+          <option value="none">No Comparisons Yet</option>
+        </select>
+        <select id="dashboard_limit">
+          <option value="10">10</option>
+          <option value="100">100</option>
+          <option value="1000">1000</option>
+        </select>
+        <input type="submit" value="run">
+      </form>
+      <table id="dashboard"></table>
+     </div>
+     
+     <h1>Dynamic Summary Information</h1>
+     <div class="container">
+      <div class="box">
+        <img src="meta/img/placeholder_graph1.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph1.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph1.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph1.png" alt="Placeholder image" width="100%">
+      </div>
+    </div>
 
+    <h1>Static Curated Insights</h1>
+    <div class="container">
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+    </div>
+    <div class="container">
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+    </div>
+    <div class="container">
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+      <div class="box">
+        <img src="meta/img/placeholder_graph2.png" alt="Placeholder image" width="100%">
+      </div>
+    </div>
   </div>
   <!-- Obligatory API call, better to do once per pageload than once for each function call -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
   <script src="scripts/script.js"></script>
 
 
-<footer>Placeholder footer text</footer>
+<footer>Placeholder footer</footer>
 </body>
 </html>

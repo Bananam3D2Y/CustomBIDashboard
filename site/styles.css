@@ -11,11 +11,14 @@ header {
   color: #ffffff;
   padding: 20px;
   border-bottom: 1px solid #333;
+  text-align: center;
 }
 
 h1 {
   margin: 0;
+  text-align: center;
 }
+
 
 div {
   padding: 20px;
@@ -49,19 +52,31 @@ td {
   border-bottom: 1px solid #333;
 }
 
-/* Alternating row color */
 tr:nth-child(even) {
   background-color: #202020;
 }
 
-/* Hover highlight */
 tr:hover {
   background-color: #2f2f2f;
 }
 /* Table settings ^ */
 
-/* Custom element stylng V */
-.dasboard_form {
-  justify-items: center; /* TODO: how to center a divvvvv? */
+/* Flexbox settings V */
+.container {
+  display: flex;
+  gap: 10px;
 }
-/* Custom element stylng ^ */
+
+.box {
+  flex: 1;
+  padding: 1px;
+
+  text-align: center;
+}
+/* Flexbox settings ^ */
+
+/* Misc element stylng V */
+#dashboard_container {
+  text-align: center;
+}
+/* Misc element stylng ^ */
