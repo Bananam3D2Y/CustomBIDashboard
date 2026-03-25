@@ -3,6 +3,8 @@ import sqlite3
 import os
 import glob
 
+# TO USE: SIMPLY PLACE TXT FILES IN THE "TXT Files" FOLDER AND RUN THE SCRIPT. A dATABASE FILE BY THE NAME OF "combined_data.db" WILL BE CREATED IN THE TXT FILES FOLDER
+
 # Hardcoded folder
 folder_path = os.path.join(os.path.dirname(__file__), "TXT Files")
 
