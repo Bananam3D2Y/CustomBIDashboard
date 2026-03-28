@@ -16,32 +16,43 @@
         <p>Placeholder header</p>
       </div>
     </header>
-    <!-- DASHBOARD, The central "dashboard" widgit, primary functionality of the site -->
+<!-- DASHBOARD, The central "dashboard" widgit, primary functionality of the site -->
     <div id="dashboard_container">
-      <h1>Interactive Dashboard</h1>
-      <p>Can be used to make querys of the form "SELECT X FROM T WHERE Y LIMIT Z"</p>
+      <h1>Interactive BI Dashboard</h1>
+      <p></p>
       <form id="dashboard_form">
         <label>Query:</label>
+
         <select id="dashboard_select">
           <option value="*">All Columns</option>
           <option value="ItemID">ItemID</option>
         </select>
+
         <select id="dashboard_from">
-          <option value="Sample_Table">Sample Table</option>
+          <option value="MainData">All Stores</option>
+          <option value="Accounts">Store #</option>
         </select>
+
         <select id="dashboard_where">
           <option value="none">No Comparisons Yet</option>
         </select>
+
         <select id="dashboard_limit">
           <option value="10">10</option>
           <option value="100">100</option>
           <option value="1000">1000</option>
         </select>
+
         <input type="submit" value="run">
       </form>
+      <pre id="query_preview">Run a query to see it here.</pre>
+
+      <div id="dashboard_message"></div>
       <table id="dashboard"></table>
-     </div>
-     
+
+    </div>
+<!-- END OF DASHBOARD ^ -->
+
      <h1>Dynamic Summary Information</h1>
      <div class="container">
       <div class="box">

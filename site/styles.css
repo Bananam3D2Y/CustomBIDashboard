@@ -79,4 +79,29 @@ tr:hover {
 #dashboard_container {
   text-align: center;
 }
+
+#query_preview {
+  text-align: left;
+  border: 1px solid #ccc;
+  padding: 1.1em;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+#dashboard_message {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+#dashboard {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#dashboard th,
+#dashboard td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
 /* Misc element stylng ^ */
