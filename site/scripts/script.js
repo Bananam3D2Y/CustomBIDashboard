@@ -1,25 +1,27 @@
-// Overall script file
+// v CHECK FOR SQL & DB LOAD THEM IF SO
 let SQLPromise = null;
 let dbPromise = null;
 
-// Helper function which is used to check if SQL.js is functional
-function getSqlJs() {
+function getSqlJsInstance() {
+  // Helper which loads sql object from cloudflare
   if (!SQLPromise) {
     SQLPromise = initSqlJs({
-      locateFile: file =>
-        `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+      locateFile: function (file) {
+        return `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`;
+      }
     });
   }
   return SQLPromise;
 }
 
-// Helper function which is used to check if our db file is present and load it if so
 async function getDatabase() {
+  // Helper which loads the db, depends on SQL object
   if (!dbPromise) {
-    dbPromise = (async () => {
-      const SQL = await getSqlJs();
-      // NOTE: Name of central db file is hard coded:
+    dbPromise = (async function () {
+      const SQL = await getSqlJsInstance();
+      // Database path is currently hard coded, which is fine
       const response = await fetch("data/data.db");
+
       if (!response.ok) {
         throw new Error(`Could not load database: ${response.status} ${response.statusText}`);
       }
@@ -28,28 +30,49 @@ async function getDatabase() {
       return new SQL.Database(new Uint8Array(buffer));
     })();
   }
-
   return dbPromise;
 }
+// ^ CHECK FOR SQL & DB LOAD THEM IF SO
 
-// Erase the etch-e-sketch
-function clearDashboard() {
-  document.getElementById("dashboard").innerHTML = "";
-  document.getElementById("dashboard_message").textContent = "";
+// v HELPER FUNCTIONS FOR ALTERING TEXT CONTENT
+function escapeSqlString(value) {
+  return String(value).replace(/'/g, "''");
 }
 
-// Alter text content on the site for users to read
 function showMessage(message) {
-  document.getElementById("dashboard_message").textContent = message;
-}
-function showQuery(query) {
-  document.getElementById("query_preview").textContent = "Query executed: " + query;
+  const el = document.getElementById("dashboard_message");
+  if (el) {
+    el.textContent = message;
+  }
 }
 
-// Draw the content of our SQL query using html table elements
+function showQuery(query) {
+  const el = document.getElementById("query_preview");
+  if (el) {
+    el.textContent = "Code Executed:\n" + query.trim();
+  }
+}
+// ^ HELPER FUNCTIONS FOR ALTERING TEXT CONTENT
+
+// v TABLE FUNCTIONS
+function clearTable() {
+  const table = document.getElementById("dashboard");
+  if (table) {
+    table.innerHTML = "";
+  }
+}
+
 function renderTable(result) {
   const table = document.getElementById("dashboard");
+  if (!table) {
+    return;
+  }
+
   table.innerHTML = "";
+
+  if (!result || result.length === 0 || !result[0].values.length) {
+    return;
+  }
 
   const columns = result[0].columns;
   const values = result[0].values;
@@ -57,9 +80,9 @@ function renderTable(result) {
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
 
-  for (const col of columns) {
+  for (let i = 0; i < columns.length; i++) {
     const th = document.createElement("th");
-    th.textContent = col;
+    th.textContent = columns[i];
     headerRow.appendChild(th);
   }
 
@@ -68,12 +91,12 @@ function renderTable(result) {
 
   const tbody = document.createElement("tbody");
 
-  for (const row of values) {
+  for (let i = 0; i < values.length; i++) {
     const tr = document.createElement("tr");
 
-    for (const cell of row) {
+    for (let j = 0; j < values[i].length; j++) {
       const td = document.createElement("td");
-      td.textContent = cell;
+      td.textContent = values[i][j] ?? "";
       tr.appendChild(td);
     }
 
@@ -82,43 +105,293 @@ function renderTable(result) {
 
   table.appendChild(tbody);
 }
+// ^ TABLE FUNCTIONS
 
-// Single method for handling queries using the functions defined above
-async function runQuery(query) {
-  clearDashboard();
+// v CHART FUNCTIONS
+function destroyChart() {
+  if (performanceChart) {
+    performanceChart.destroy();
+    performanceChart = null;
+  }
+}
+
+// Global variable necessary for chart function
+let performanceChart = null;
+function renderChart(rows, labelText, yAxisLabel) {
+  const canvas = document.getElementById("performance_chart");
+  if (!canvas) {
+    return;
+  }
+
+  destroyChart();
+
+  const labels = [];
+  const values = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    labels.push(String(rows[i][0]));
+    values.push(Number(rows[i][1] ?? 0));
+  }
+
+  const ctx = canvas.getContext("2d");
+
+  performanceChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: labelText,
+          data: values,
+          tension: 0.2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "CalendarID"
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: yAxisLabel
+          }
+        }
+      }
+    }
+  });
+}
+// ^ CHART FUNCTIONS
+
+// v POPULATE OPTIONS FOR THE USER'S DROPDOWN MENU AUTOMATICALLY 
+function fillSelect(selectId, rows, allLabel, valueIndex, textIndex) {
+  const select = document.getElementById(selectId);
+  if (!select) {
+    return;
+  }
+
+  select.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = allLabel;
+  select.appendChild(allOption);
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const option = document.createElement("option");
+    option.value = row[valueIndex];
+    option.textContent = row[textIndex] != null ? row[textIndex] : row[valueIndex];
+    select.appendChild(option);
+  }
+}
+
+async function populateFilters() {
+  try {
+    const db = await getDatabase();
+
+    const storeResult = db.exec(`
+      SELECT StoreID, StoreName
+      FROM Stores
+      WHERE StoreID > 0
+      ORDER BY StoreID
+    `);
+
+    const accountResult = db.exec(`
+      SELECT AccountID, AccountName
+      FROM Accounts
+      ORDER BY AccountID
+    `);
+
+    const storeRows = storeResult.length ? storeResult[0].values : [];
+    const accountRows = accountResult.length ? accountResult[0].values : [];
+
+    fillSelect("store_select", storeRows, "All Stores", 0, 1);
+    fillSelect("account_select", accountRows, "All Accounts", 0, 1);
+  } catch (error) {
+    showMessage(`Failed to load filters: ${error.message}`);
+  }
+}
+
+function syncFormState() {
+  const metricSource = document.getElementById("metric_source");
+  const accountSelect = document.getElementById("account_select");
+
+  if (!metricSource || !accountSelect) {
+    return;
+  }
+
+  if (metricSource.value === "maindata") {
+    accountSelect.disabled = false;
+  } else {
+    accountSelect.disabled = true;
+    accountSelect.value = "";
+  }
+}
+// ^ POPULATE OPTIONS FOR THE USER'S DROPDOWN MENU AUTOMATICALLY 
+
+// v CONSTRUCT SQL QUERIES 
+function buildPOSSalesQuery(storeId) {
+  const whereParts = [];
+
+  if (storeId !== "") {
+    whereParts.push(`StoreID = ${Number(storeId)}`);
+  }
+
+  let whereClause = "";
+  if (whereParts.length > 0) {
+    whereClause = `WHERE ${whereParts.join(" AND ")}`;
+  }
+
+  return `
+    SELECT
+      CalendarID,
+      ROUND(SUM(Sales), 2) AS TotalSales
+    FROM POSSales
+    ${whereClause}
+    GROUP BY CalendarID
+    ORDER BY CalendarID
+  `;
+}
+
+function buildMainDataQuery(storeId, accountId) {
+  const whereParts = [];
+
+  if (storeId !== "") {
+    whereParts.push(`StoreID = ${Number(storeId)}`);
+  }
+
+  if (accountId !== "") {
+    whereParts.push(`AccountID = ${Number(accountId)}`);
+  }
+
+  let whereClause = "";
+  if (whereParts.length > 0) {
+    whereClause = `WHERE ${whereParts.join(" AND ")}`;
+  }
+
+  return `
+    SELECT
+      CalendarID,
+      ROUND(SUM(Amount), 2) AS TotalAmount 
+    FROM MainData
+    ${whereClause}
+    GROUP BY CalendarID
+    ORDER BY CalendarID
+  `;
+}
+// ^ CONSTRUCT SQL QUERIES 
+
+// Helper which constructs and returns an array containing the parts of the query
+function buildChartLabel(metricSource, storeId, accountId) {
+  const parts = [];
+
+  if (metricSource === "possales") {
+    parts.push("POS Sales");
+  } else {
+    parts.push("MainData Amount");
+  }
+
+  if (storeId) {
+    parts.push(`Store ${storeId}`);
+  } else {
+    parts.push("All Stores");
+  }
+
+  if (metricSource === "maindata") {
+    if (accountId) {
+      parts.push(`Account ${accountId}`);
+    } else {
+      parts.push("All Accounts");
+    }
+  }
+
+  return parts.join(" · ");
+}
+
+// v HELPERS FOR CHART ARTIST 
+// Reads index 0 of the query parts and uses it to help 
+function getYAxisLabel(metricSource) {
+  if (metricSource === "possales") {
+    return "Sales";
+  }
+  return "Amount";
+}
+// ^ HELPERS FOR CHART ARTIST 
+
+// Actually runs the SQL query
+async function runDashboardQuery(event) {
+  event.preventDefault();
+
+  clearTable();
+  showMessage("");
+
+  const metricSourceEl = document.getElementById("metric_source");
+  const storeSelectEl = document.getElementById("store_select");
+  const accountSelectEl = document.getElementById("account_select");
+
+  if (!metricSourceEl || !storeSelectEl || !accountSelectEl) {
+    showMessage("Dashboard form elements are missing.");
+    return;
+  }
+
+  const metricSource = metricSourceEl.value;
+  const storeId = storeSelectEl.value;
+  const accountId = accountSelectEl.value;
+
+  let query = "";
+
+  if (metricSource === "possales") {
+    query = buildPOSSalesQuery(storeId);
+  } else {
+    query = buildMainDataQuery(storeId, accountId);
+  }
+
   showQuery(query);
 
   try {
     const db = await getDatabase();
     const result = db.exec(query);
 
-    if (result.length === 0) {
-      showMessage("Query ran successfully, but returned no rows.");
+    if (!result.length || !result[0].values.length) {
+      destroyChart();
+      showMessage("No rows returned for that selection.");
       return;
     }
 
     renderTable(result);
+    renderChart(
+      result[0].values,
+      buildChartLabel(metricSource, storeId, accountId),
+      getYAxisLabel(metricSource)
+    );
   } catch (error) {
+    destroyChart();
     showMessage(`Error: ${error.message}`);
   }
 }
 
-// Create a listener for our central dashboard form
-document.getElementById("dashboard_form").addEventListener("submit", async function (event) {
-  event.preventDefault();
+function attachEventListeners() {
+  const metricSource = document.getElementById("metric_source");
+  const dashboardForm = document.getElementById("dashboard_form");
 
-  const select = document.getElementById("dashboard_select").value;
-  const from = document.getElementById("dashboard_from").value;
-  const where = document.getElementById("dashboard_where").value;
-  const limit = document.getElementById("dashboard_limit").value;
-
-  let query;
-
-  if (where === "none") {
-    query = `SELECT ${select} FROM ${from} LIMIT ${limit}`;
-  } else {
-    query = `SELECT ${select} FROM ${from} WHERE ${where} LIMIT ${limit}`;
+  if (metricSource) {
+    metricSource.addEventListener("change", syncFormState);
   }
 
-  await runQuery(query);
-});
+  if (dashboardForm) {
+    dashboardForm.addEventListener("submit", runDashboardQuery);
+  }
+}
+
+// ATTATCH ALL LISTENERS AS NEEDED TO THE SITE
+attachEventListeners();
+syncFormState();
+populateFilters();

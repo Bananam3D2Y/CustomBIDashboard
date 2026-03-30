@@ -16,41 +16,34 @@
         <p>Placeholder header</p>
       </div>
     </header>
-<!-- DASHBOARD, The central "dashboard" widgit, primary functionality of the site -->
-    <div id="dashboard_container">
-      <h1>Interactive BI Dashboard</h1>
-      <p></p>
-      <form id="dashboard_form">
-        <label>Query:</label>
 
-        <select id="dashboard_select">
-          <option value="*">All Columns</option>
-          <option value="ItemID">ItemID</option>
-        </select>
+<!-- DASHBOARD, The central widgit, primary functionality of the site -->
+<form id="dashboard_form">
+  <label for="metric_source">Table:</label>
+  <select id="metric_source">
+    <option value="possales">POS Sales</option>
+    <option value="maindata">MainData Amount</option>
+  </select>
 
-        <select id="dashboard_from">
-          <option value="MainData">All Stores</option>
-          <option value="Accounts">Store #</option>
-        </select>
+  <label for="store_select">Store:</label>
+  <select id="store_select">
+    <option value="">All Stores</option>
+  </select>
 
-        <select id="dashboard_where">
-          <option value="none">No Comparisons Yet</option>
-        </select>
+  <label for="account_select">Account:</label>
+  <select id="account_select" disabled>
+    <option value="">All Accounts</option>
+  </select>
 
-        <select id="dashboard_limit">
-          <option value="10">10</option>
-          <option value="100">100</option>
-          <option value="1000">1000</option>
-        </select>
+  <input type="submit" value="Run">
+</form>
 
-        <input type="submit" value="run">
-      </form>
-      <pre id="query_preview">Run a query to see it here.</pre>
-
-      <div id="dashboard_message"></div>
-      <table id="dashboard"></table>
-
-    </div>
+<div class="chart_panel">
+  <canvas id="performance_chart"></canvas>
+</div>
+<table id="dashboard"></table>
+<pre id="query_preview"></pre>
+<div id="dashboard_message"></div>
 <!-- END OF DASHBOARD ^ -->
 
      <h1>Dynamic Summary Information</h1>
@@ -104,10 +97,10 @@
       </div>
     </div>
   </div>
-  <!-- Obligatory API call, better to do once per pageload than once for each function call -->
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
   <script src="scripts/script.js"></script>
-
 
 <footer>Placeholder footer</footer>
 </body>
