@@ -102,6 +102,36 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
   <script src="scripts/script.js"></script>
 
-<footer>Placeholder footer</footer>
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+
+    <div class="footer-brand">
+      <div class="footer-logo-mark"></div>
+      <span class="footer-title">Data Quality Dashboard</span>
+    </div>
+
+    <div class="footer-meta">
+      <span class="footer-school">Michigan Technological University</span>
+      <span class="footer-divider">·</span>
+      <span class="footer-course">MIS4400 Spring 2026</span>
+    </div>
+
+    <div class="footer-right">
+      <span class="footer-status">
+        <span class="footer-status-dot"></span>
+        Live Data
+      </span>
+      <span class="footer-copy">&copy; <span id="footer-year"></span> MTU Student Project</span>
+    </div>
+
+  </div>
+  <div class="footer-bar"></div>
+</footer>
+
+<script>
+  document.getElementById("footer-year").textContent = new Date().getFullYear();
+</script>
+
 </body>
 </html>
