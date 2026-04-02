@@ -1,7 +1,9 @@
-// v CHECK FOR SQL & DB LOAD THEM IF SO
+// Globals
 let SQLPromise = null;
 let dbPromise = null;
+let performanceChart = null;
 
+// v CHECK FOR SQL & DB LOAD THEM IF SO
 function getSqlJsInstance() {
   // Helper which loads sql object from cloudflare
   if (!SQLPromise) {
@@ -115,9 +117,13 @@ function destroyChart() {
   }
 }
 
-// Global variable necessary for chart function
-let performanceChart = null;
 function renderChart(rows, labelText, yAxisLabel) {
+  // Logic for placeholder img
+  const placeholder = document.getElementById("chart_placeholder");
+  if (placeholder) {
+    placeholder.style.display = "none";
+  }
+
   const canvas = document.getElementById("performance_chart");
   if (!canvas) {
     return;
@@ -150,6 +156,17 @@ function renderChart(rows, labelText, yAxisLabel) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 500,
+        easing: "easeOutQuart"
+      },
+      animations: {
+        y: {
+          from: 30,
+          duration: 500,
+          easing: "easeOutQuart"
+        }
+      },
       scales: {
         x: {
           title: {
@@ -220,47 +237,10 @@ async function populateFilters() {
   }
 }
 
-function syncFormState() {
-  const metricSource = document.getElementById("metric_source");
-  const accountSelect = document.getElementById("account_select");
 
-  if (!metricSource || !accountSelect) {
-    return;
-  }
-
-  if (metricSource.value === "maindata") {
-    accountSelect.disabled = false;
-  } else {
-    accountSelect.disabled = true;
-    accountSelect.value = "";
-  }
-}
 // ^ POPULATE OPTIONS FOR THE USER'S DROPDOWN MENU AUTOMATICALLY 
 
 // v CONSTRUCT SQL QUERIES 
-function buildPOSSalesQuery(storeId) {
-  const whereParts = [];
-
-  if (storeId !== "") {
-    whereParts.push(`StoreID = ${Number(storeId)}`);
-  }
-
-  let whereClause = "";
-  if (whereParts.length > 0) {
-    whereClause = `WHERE ${whereParts.join(" AND ")}`;
-  }
-
-  return `
-    SELECT
-      CalendarID,
-      ROUND(SUM(Sales), 2) AS TotalSales
-    FROM POSSales
-    ${whereClause}
-    GROUP BY CalendarID
-    ORDER BY CalendarID
-  `;
-}
-
 function buildMainDataQuery(storeId, accountId) {
   const whereParts = [];
 
@@ -281,7 +261,7 @@ function buildMainDataQuery(storeId, accountId) {
     SELECT
       CalendarID,
       ROUND(SUM(Amount), 2) AS TotalAmount 
-    FROM MainData
+    FROM FullMainData
     ${whereClause}
     GROUP BY CalendarID
     ORDER BY CalendarID
@@ -290,41 +270,26 @@ function buildMainDataQuery(storeId, accountId) {
 // ^ CONSTRUCT SQL QUERIES 
 
 // Helper which constructs and returns an array containing the parts of the query
-function buildChartLabel(metricSource, storeId, accountId) {
+function buildChartLabel(storeId, accountId) {
   const parts = [];
+  parts.push("MainData Amount");
 
-  if (metricSource === "possales") {
-    parts.push("POS Sales");
-  } else {
-    parts.push("MainData Amount");
-  }
-
+  // Fetch all accounts, eg "All Accounts, Product Sales, Food, ..." 
   if (storeId) {
     parts.push(`Store ${storeId}`);
   } else {
     parts.push("All Stores");
   }
-
-  if (metricSource === "maindata") {
-    if (accountId) {
-      parts.push(`Account ${accountId}`);
-    } else {
-      parts.push("All Accounts");
-    }
+  // Fetch all accounts, eg "All Accounts, Product Sales, Food, ..." 
+  if (accountId) {
+    parts.push(`Account ${accountId}`);
+  } else {
+    parts.push("All Accounts");
   }
+
 
   return parts.join(" · ");
 }
-
-// v HELPERS FOR CHART ARTIST 
-// Reads index 0 of the query parts and uses it to help 
-function getYAxisLabel(metricSource) {
-  if (metricSource === "possales") {
-    return "Sales";
-  }
-  return "Amount";
-}
-// ^ HELPERS FOR CHART ARTIST 
 
 // Actually runs the SQL query
 async function runDashboardQuery(event) {
@@ -333,27 +298,19 @@ async function runDashboardQuery(event) {
   clearTable();
   showMessage("");
 
-  const metricSourceEl = document.getElementById("metric_source");
   const storeSelectEl = document.getElementById("store_select");
   const accountSelectEl = document.getElementById("account_select");
 
-  if (!metricSourceEl || !storeSelectEl || !accountSelectEl) {
+  if (!storeSelectEl || !accountSelectEl) {
     showMessage("Dashboard form elements are missing.");
     return;
   }
 
-  const metricSource = metricSourceEl.value;
   const storeId = storeSelectEl.value;
   const accountId = accountSelectEl.value;
 
   let query = "";
-
-  if (metricSource === "possales") {
-    query = buildPOSSalesQuery(storeId);
-  } else {
-    query = buildMainDataQuery(storeId, accountId);
-  }
-
+  query = buildMainDataQuery(storeId, accountId);
   showQuery(query);
 
   try {
@@ -369,8 +326,8 @@ async function runDashboardQuery(event) {
     renderTable(result);
     renderChart(
       result[0].values,
-      buildChartLabel(metricSource, storeId, accountId),
-      getYAxisLabel(metricSource)
+      buildChartLabel(storeId, accountId),
+      "Amount $"
     );
   } catch (error) {
     destroyChart();
@@ -379,13 +336,7 @@ async function runDashboardQuery(event) {
 }
 
 function attachEventListeners() {
-  const metricSource = document.getElementById("metric_source");
   const dashboardForm = document.getElementById("dashboard_form");
-
-  if (metricSource) {
-    metricSource.addEventListener("change", syncFormState);
-  }
-
   if (dashboardForm) {
     dashboardForm.addEventListener("submit", runDashboardQuery);
   }
@@ -393,5 +344,4 @@ function attachEventListeners() {
 
 // ATTATCH ALL LISTENERS AS NEEDED TO THE SITE
 attachEventListeners();
-syncFormState();
 populateFilters();

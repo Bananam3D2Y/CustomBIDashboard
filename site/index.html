@@ -19,26 +19,30 @@
 
 <!-- DASHBOARD, The central widgit, primary functionality of the site -->
 <form id="dashboard_form">
-  <label for="metric_source">Table:</label>
-  <select id="metric_source">
-    <option value="possales">POS Sales</option>
-    <option value="maindata">MainData Amount</option>
-  </select>
-
   <label for="store_select">Store:</label>
   <select id="store_select">
     <option value="">All Stores</option>
   </select>
 
   <label for="account_select">Account:</label>
-  <select id="account_select" disabled>
+  <select id="account_select">
     <option value="">All Accounts</option>
   </select>
 
   <input type="submit" value="Run">
 </form>
 
+
 <div class="chart_panel">
+  <img
+    id="chart_placeholder"
+    src="meta/img/chart_placeholder.png"
+    style="  
+      width: 50%;
+      display: block;
+      pointer-events: none;
+    "
+  />
   <canvas id="performance_chart"></canvas>
 </div>
 <table id="dashboard"></table>
